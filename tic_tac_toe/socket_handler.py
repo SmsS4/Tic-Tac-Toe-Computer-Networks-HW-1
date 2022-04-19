@@ -65,6 +65,5 @@ class SocketHandler:
             return
         cur = time.time()
         while message.message_id not in self.accs and (time.time() - cur) < timeout:
-            print((time.time() - cur))
             self.fill_buffer()
         return self.accs.get(message.message_id, None)

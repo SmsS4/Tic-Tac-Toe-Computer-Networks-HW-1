@@ -76,11 +76,11 @@ class WebServer:
             if user.game_server.users[0] != user.username
             else user.game_server.users[1]
         )
-        self.logger.info("Hmmm")
+        self.logger.info("Hmmm1")
         acc = user.socket_handler.send_message(
             GameFound(opp.username), wait_for_acc=True
         )
-        self.logger.info("Hmmm")
+        self.logger.info("Hmmm2")
         if acc is None:
             self.logger.error("User disconnected")
             return

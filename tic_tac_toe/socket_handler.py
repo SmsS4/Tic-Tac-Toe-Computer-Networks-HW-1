@@ -1,5 +1,7 @@
 import socket
+import threading
 import time
+from logging import ERROR
 from typing import List, Dict, Optional
 
 from tic_tac_toe.messages import Message, get_message, Acc, serialize, MessageType
@@ -7,11 +9,12 @@ from tic_tac_toe.logger import get_logger
 
 
 class SocketHandler:
-    logger = get_logger("socket", split=" ")
+    logger = get_logger("socket", split=" ", level=ERROR)
     CHUNK_SIZE = 1024
     DELIMITER = b";"
 
     def __init__(self, conn: socket.socket):
+        self.lock = threading.Lock()
         self.socket = conn
         self.buffer: List[Message] = []
         self.accs: Dict[str, Acc] = {}
@@ -41,11 +44,13 @@ class SocketHandler:
         return False
 
     def get_next_message(self) -> Message:
+        # self.lock.acquire()
         while True:
-            self.fill_buffer()
             if len(self.buffer):
+                # self.lock.release()
                 return self.buffer.pop(0)
             else:
+                self.fill_buffer()
                 time.sleep(0)
                 continue
 
@@ -59,11 +64,14 @@ class SocketHandler:
     def send_message(
         self, message: Message, wait_for_acc: bool, timeout: int = 5
     ) -> Optional[Acc]:
+        # self.lock.acquire()
         self.logger.info("Sending new message %s", message.message_type)
         self.socket.sendall(serialize(message) + self.DELIMITER)
         if not wait_for_acc:
+            # self.lock.release()
             return
         cur = time.time()
         while message.message_id not in self.accs and (time.time() - cur) < timeout:
             self.fill_buffer()
+        # self.lock.release()
         return self.accs.get(message.message_id, None)

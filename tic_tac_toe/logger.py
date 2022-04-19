@@ -54,7 +54,10 @@ class LoggerFormatter(logging.Formatter):
     level_just = 40
 
     def __init__(
-        self, splitter: str, show_func: bool = False, emphasize_from: int = logging.ERROR
+        self,
+        splitter: str,
+        show_func: bool = False,
+        emphasize_from: int = logging.ERROR,
     ):
         """
         Args:

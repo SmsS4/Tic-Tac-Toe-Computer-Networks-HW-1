@@ -6,6 +6,7 @@ authors = ["SmsS4 <smss.lite@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+names = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 

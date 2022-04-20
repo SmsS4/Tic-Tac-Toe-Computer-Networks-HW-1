@@ -40,11 +40,7 @@ class WebServer:
         game = GameServerData(socket_handler, 0)
         self.game_servers.append(game)
         while True:
-            # try:
             message = socket_handler.get_next_message()
-            # except ConnectionResetError:
-            #     self.logger.info("Player dc")
-            #     pass
             if message.message_type != MessageType.ACC:
                 game.socket_handler.send_acc(message.message_id)
             self.logger.info("Game server said %s %s", message.message_type, message)
@@ -132,14 +128,14 @@ class WebServer:
             self.logger.info("Client said %s %s", message.message_type, message)
             if message.message_type == MessageType.NEW_GAME_REQUEST:
                 self.new_game(user, message)
-            elif message.message_type == MessageType.MAKE_MOVE:
-                user.socket_handler.send_acc(message.message_id)
-                user.game_server.socket_handler.send_message(message, False)
             elif message.message_type == MessageType.SEND_MESSAGE:
                 message.target = (
                     user.game_server.users[0].username if user.game_server.users[0].username != user.username else
                     user.game_server.users[1].username)
                 self.logger.info("%s said to %s %s", user.username, message.target, message.text)
+                user.game_server.socket_handler.send_message(message, False)
+            elif message.message_type in (MessageType.MAKE_MOVE, MessageType.EXIT):
+                user.socket_handler.send_acc(message.message_id)
                 user.game_server.socket_handler.send_message(message, False)
 
     @defensive(logger.error)

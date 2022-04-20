@@ -66,6 +66,11 @@ class GameServer:
                 if self.players[0] == 'BOT':
                     self.players = self.players[1], self.players[0]
                 self.move()
+            elif message.message_type == messages.MessageType.EXIT:
+                self.logger.info("Player %s left the game", message.user)
+                self.end_game(
+                    self.players[0] if self.players[1] == message.user else self.players[1]
+                )
             elif message.message_type == messages.MessageType.SEND_MESSAGE:
                 self.socket_handler.send_message(message, False)
             elif message.message_type == messages.MessageType.RECONNECTED:
@@ -86,7 +91,6 @@ class GameServer:
                 else:
                     self.game_state[message.pos] = self.players[0]
                     self.players = self.players[1], self.players[0]
-
 
                     if self.players[0] == 'BOT' and self.get_winner() is None:
                         self.logger.info("Bot making move")
@@ -109,12 +113,15 @@ class GameServer:
                     if self.get_winner() is None:
                         self.move()
             if self.get_winner():
-                self.logger.info("Game ended")
-                self.socket_handler.send_message(
-                    GameEnded(self.get_winner()), False
-                )
-                self.game_state = [None, None, None, None, None, None, None, None, None]
-                self.players = None
+                self.end_game(self.get_winner())
+
+    def end_game(self, winner: str):
+        self.logger.info("Game ended")
+        self.socket_handler.send_message(
+            GameEnded(winner), False
+        )
+        self.game_state = [None, None, None, None, None, None, None, None, None]
+        self.players = None
 
 
 if __name__ == "__main__":

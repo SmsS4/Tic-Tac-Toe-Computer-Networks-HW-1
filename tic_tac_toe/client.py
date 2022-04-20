@@ -42,9 +42,9 @@ class Client:
                 raw_cells.append(str(i))
         cells = list(map(self.get_cell, raw_cells))
         print(*cells[:3], sep=' | ')
-        print('-' * self.WIDTH * 4)
+        print('-' * self.WIDTH * 2)
         print(*cells[3:6], sep=' | ')
-        print('-' * self.WIDTH * 4)
+        print('-' * self.WIDTH * 2)
         print(*cells[6:9], sep=' | ')
 
     def new_game(self):
@@ -60,6 +60,8 @@ class Client:
             elif message.message_type == messages.MessageType.WAIT_FOR_OPPONENT:
                 print('Wait for opponent')
             elif message.message_type == messages.MessageType.GAME_ENDED:
+                self.print_game_state()
+                self.game_state = [None, None, None, None, None, None, None, None, None]
                 print(f"Game ended {message.winner} won")
                 self.game = False
                 break
@@ -79,6 +81,7 @@ class Client:
                 print(f'Opponent said\n{message.text}')
 
     def game_menu(self):
+        self.game_thread = threading.Thread(target=self.new_game)
         self.game_thread.start()
         while self.game is None:
             time.sleep(0.1)
@@ -88,9 +91,9 @@ class Client:
             options = []
             options.append(("move", "Make move"), )
             options.append(("reconnect_test", "Reconnect"), )
+            options.append(("exit", "Leave the game"), )
             if not self.single_player:
                 options.append(("msg", "Send message"))
-
             cmd = handle_menu(options)
             if not self.game:
                 break
@@ -103,7 +106,11 @@ class Client:
                 text = input('Enter your message\n')
                 self.socket_handler.send_message(messages.SendMessage(text, ''), False)
                 print('Message sent')
-            if cmd == 'move':
+            elif cmd == "exit":
+                print("Exiting...")
+                self.socket_handler.send_message(messages.Exit(self.username), False)
+                break
+            elif cmd == 'move':
                 if not self.my_turn:
                     print('Its not your turn')
                     continue

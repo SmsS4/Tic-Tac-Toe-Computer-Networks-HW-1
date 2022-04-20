@@ -27,6 +27,7 @@ class MessageType(IntEnum):
     GAME_ENDED = 11
     YOU_CAN_MOVE = 12
     RECONNECTED = 13
+    EXIT = 14
 
 
 class GameType(IntEnum):
@@ -126,6 +127,16 @@ class PlayerReconnected(Message):
         super().__init__(message_type, message_id)
         self.user = user
 
+class Exit(Message):
+    def __init__(
+            self,
+            user: str,
+            message_type: MessageType = MessageType.EXIT,
+            message_id: int = None
+    ):
+        super().__init__(message_type, message_id)
+        self.user = user
+
 class Result(Message):
     def __init__(
         self,
@@ -196,6 +207,7 @@ messages_types = {
     MessageType.YOU_CAN_MOVE: YouCanMove,
     MessageType.SEND_MESSAGE: SendMessage,
     MessageType.RECONNECTED: PlayerReconnected,
+    MessageType.EXIT: Exit,
 }
 
 

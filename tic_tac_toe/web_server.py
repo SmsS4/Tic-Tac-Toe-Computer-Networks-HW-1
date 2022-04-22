@@ -34,6 +34,7 @@ class WebServer:
         self.sockets_thread = threading.Thread(target=self.handle_sockets)
         self.game_servers: List[GameServerData] = []
         self.users: List[User] = []
+        self.lock = threading.Lock()
 
     def handle_game_server_socket(self, socket_handler: SocketHandler):
         self.logger.info("New game socket")
@@ -69,15 +70,18 @@ class WebServer:
     def get_empty_server(
             self, game_type: GameType, block: bool
     ) -> Optional[GameServerData]:
+        self.lock.acquire()
         while True:
             if game_type == GameType.MULTI_PLAYER:
                 for game_server_data in self.game_servers:
                     if game_server_data.number_of_users == 1:
                         game_server_data.number_of_users += 1
+                        self.lock.release()
                         return game_server_data
                 for game_server_data in self.game_servers:
                     if game_server_data.number_of_users == 0:
                         game_server_data.number_of_users += 1
+                        self.lock.release()
                         return game_server_data
             else:
                 for game_server_data in self.game_servers:
@@ -85,10 +89,14 @@ class WebServer:
                         game_server_data.number_of_users += 2
                         bot = User(None, None, "BOT", is_bot=True)
                         game_server_data.users.append(bot)
+                        self.lock.release()
                         return game_server_data
             if not block:
+                self.lock.release()
                 return None
+            self.lock.release()
             time.sleep(1)
+            self.lock.acquire()
 
     def new_game(self, user: User, message: RequestNewGame):
         self.logger.info("New game")
